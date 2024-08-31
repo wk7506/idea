@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아이디어 공유</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f7f9fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .input-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    input, textarea {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    }
+
+    .add-button {
+      display: flex; /* Flexbox 사용으로 중앙 정렬을 용이하게 함 */
+      justify-content: center; /* 수평 중앙 정렬 */
+      align-items: center; /* 수직 중앙 정렬 */
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .add-button:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+    }
+
+    .card {
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .card-content {
+      font-size: 16px;
+      color: #666;
+    }
+
+    @media screen and (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      .add-button {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>아이디어 공유</h1>
+    <div class="input-container">
+      <input type="text" id="title" placeholder="제목 입력">
+      <textarea id="idea" placeholder="아이디어 입력"></textarea>
+      <button class="add-button" onclick="window.addIdea()">추가</button>
+    </div>
+    <div id="idea-list"></div>
+  </div>
+
+  <!-- Firebase Configuration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAm2_Z3388L4_kzxhUNOtieglWGU6BoA0A",
+      authDomain: "today-f9138.firebaseapp.com",
+      projectId: "today-f9138",
+      storageBucket: "today-f9138.appspot.com",
+      messagingSenderId: "198671443737",
+      appId: "1:198671443737:web:7ce1e40f6a7ffef7214788",
+      measurementId: "G-ST3JSGCL5C"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const ideasCollection = collection(db, "ideas");
+
+    // Function to add idea
+    window.addIdea = async function() {
+      const title = document.getElementById('title').value;
+      const idea = document.getElementById('idea').value;
+
+      if (title && idea) {
+        // Add idea to Firestore
+        await addDoc(ideasCollection, { title, idea });
+      }
+    }
+
+    // Function to display ideas
+    function displayIdea(id, title, idea) {
+      const ideaList = document.getElementById('idea-list');
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = id;
+      card.innerHTML = `<div class="card-title">${title}</div><div class="card-content">${idea}</div>`;
+      ideaList.appendChild(card);
+    }
+
+    // Function to clear all displayed ideas
+    function clearIdeas() {
+      const ideaList = document.getElementById('idea-list');
+      ideaList.innerHTML = '';
+    }
+
+    // Real-time listener for Firestore changes
+    onSnapshot(ideasCollection, (snapshot) => {
+      clearIdeas(); // Clear existing ideas
+      snapshot.forEach((doc) => {
+        const { title, idea } = doc.data();
+        displayIdea(doc.id, title, idea);
+      });
+    });
+  </script>
+</body>
+</html>
